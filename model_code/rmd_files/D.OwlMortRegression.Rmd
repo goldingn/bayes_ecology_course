@@ -1,5 +1,3 @@
-Erroring
-
 ```{r packages}
 library(jagsUI)
 ```
@@ -19,8 +17,7 @@ model
   for (i in 1:26)
   {
     lp[i] <- a + b*Mass[i] + c*Owl[i]   # mean mortality for raptors with that weight and type
-    lm[i] <- logit(Mortality[i])   # logit tansformation of mortality
-    lm[i] ~ dnorm(lp[i], tau)   # logit of mortality drawn from a normal distribution
+    logitMortality[i] ~ dnorm(lp[i], tau)   # logit of mortality drawn from a normal distribution
   }
 }
            ", con = modfile)
@@ -38,6 +35,8 @@ data <- list(
                 0.25, 0.48, 0.39, 0.31, 0.22, 0.2, 0.48, 0.41, 0.25, 0.26, 0.04, 
                 0.035, 0.08, 0.12, 0.25)
 )
+data$logitMortality <- plogis(data$Mortality)
+data$Mortality <- NULL
 ```
 
 ```{r inits}
