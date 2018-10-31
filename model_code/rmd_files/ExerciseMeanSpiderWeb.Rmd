@@ -1,0 +1,51 @@
+Elgar et al. (1996) studied the size of webs spun by 17 orb spiders. Each spider spun one web in high light conditions and one in low light conditions. The difference in the vertical and horizontal size of each pair of webs was determined with negative values indicating that the web in high light conditions was smaller than for low light conditions. The data for the difference in the vertical dimension of the webs for the 17 spiders is given below.
+
+a) Estimate the average change in the vertical dimension of the webs assuming there is no prior information.
+
+b) Repeat the analysis for the horizontal dimension.
+
+c) Would you use the results of (a) as a prior for the analysis in (b)? If so, how would that be achieved? What would be the result?
+
+```{r packages}
+library(jagsUI)
+```
+
+```{r model}
+modfile <- tempfile()
+writeLines("
+model
+{
+
+}
+           ", con = modfile)
+```
+
+```{r data}
+data_vert <- list(VertDiff = c(-220, -120, -80, -130, -10, -60, -40, 60, -10, 
+                               40, -30, 30, 30, 110, 90, 70, -80))
+
+data_horiz <- list(HorizDiff = c(-235, -120, -120, -130, 20, -60, -170, 100, 
+                                 0, 30, -80, 60, -50, 30, -10, 10, -60))
+```
+
+```{r inits}
+inits <- function () {
+
+}
+```
+
+```{r params}
+params <- c("")
+```
+
+```{r fit}
+fit <- autojags(data, inits, params, modfile, n.chains = 4)
+```
+
+```{r plot}
+plot(fit)
+summary(fit$samples)
+```
+
+
+

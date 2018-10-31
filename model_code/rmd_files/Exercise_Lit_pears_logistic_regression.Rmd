@@ -1,0 +1,132 @@
+Kirsten Parris conducted surveys of frogs along 100 m transects of 64 forested streams within the range of Litoria personiana, the cascade treefrog. The presence of L. pearsoniana was related to the size of the stream and the presence of mesic vegetation at the site. The size of the stream was measured as the logarithm of the volume of annual rainfall falling in the catchment above the stream. Mesic vegetation was indicated by the presence of palms (in the data below palms=1 indicates palms were present, palms=0 indicates palms were absent). 
+
+a) Construct a logistic regression model of the relationship between the probability of presence of L. pearsoniana and the two explanatory variables logarithm of catchment volume and the presence of palms.
+
+b) Construct a model that includes an interation between palms and the logarithm of catchment volume. Compare this model with a model without the interaction term by examining the DIC values.
+
+
+```{r packages}
+library(jagsUI)
+```
+
+```{r model}
+modfile <- tempfile()
+writeLines("
+model
+{
+
+}
+           ", con = modfile)
+```
+
+```{r data}
+data <- list(
+  Lp = c(0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 
+         1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 
+         0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 
+         0, 0),
+  LnCV = c(2.591, 3.842, 3.454, 2.459, 2.941, 3.175, 2.633, 2.955, 3.172, 
+           3.078, 2.77, 4.221, 3.557, 3.809, 2.541, 4.261, 3.764, 5.019, 
+           2.517, 3.621, 3.178, 3.211, 3.028, 3.204, 2.065, 4.114, 4.662, 
+           2.593, 2.17, 3.162, 3.596, 4.229, 4.794, 3.22, 3.193, 4.336, 
+           3.749, 3.123, 3.836, 4.542, 3.382, 3.513, 3.376, 3.949, 3.641, 
+           3.042, 3.122, 3.465, 3.871, 4.197, 2.872, 3.583, 2.986, 2.131, 
+           3.714, 3.113, 3.117, 3.434, 2.932, 4.241, 3.382, 3.12, 3.679, 
+           4.202),
+  palms = c(0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 
+            1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 
+            0, 0)
+)
+```
+
+```{r inits}
+inits <- function () {
+  list(a = 0, b = 0, c = 0)
+}
+```
+
+```{r params}
+params <- c("a", "b", "c")
+```
+
+```{r fit}
+fit <- autojags(data, inits, params, modfile, n.chains = 4)
+```
+
+```{r plot}
+plot(fit)
+summary(fit$samples)
+```
+
+
+Lp[]	LnCV[]	palms[]	
+0	2.591	0
+1	3.842	1
+1	3.454	1
+0	2.459	1
+0	2.941	1
+0	3.175	1
+0	2.633	0
+0	2.955	0
+0	3.172	0
+0	3.078	0
+0	2.77	1
+1	4.221	1
+1	3.557	1
+1	3.809	1
+1	2.541	1
+1	4.261	1
+1	3.764	1
+0	5.019	0
+0	2.517	1
+1	3.621	0
+1	3.178	1
+1	3.211	1
+1	3.028	1
+0	3.204	1
+0	2.065	0
+1	4.114	1
+1	4.662	0
+0	2.593	0
+1	2.17	0
+0	3.162	1
+0	3.596	1
+1	4.229	1
+0	4.794	0
+0	3.22	1
+0	3.193	0
+1	4.336	1
+0	3.749	1
+0	3.123	1
+1	3.836	1
+0	4.542	1
+0	3.382	0
+0	3.513	1
+1	3.376	1
+1	3.949	1
+1	3.641	1
+1	3.042	1
+1	3.122	1
+1	3.465	1
+1	3.871	1
+1	4.197	1
+0	2.872	1
+1	3.583	1
+0	2.986	1
+0	2.131	1
+0	3.714	0
+0	3.113	1
+0	3.117	1
+0	3.434	1
+0	2.932	0
+1	4.241	0
+1	3.382	1
+0	3.12	0
+0	3.679	0
+0	4.202	0
+END
+
+
+
+

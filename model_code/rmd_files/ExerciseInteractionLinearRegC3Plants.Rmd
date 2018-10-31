@@ -1,0 +1,72 @@
+Paruelo and Laueroth (1996) examined the relationship between the distribution of C3 grasses in the western portion of North America and several geographic variables. 
+
+The variables below are longitude, latitude and relative abundance of C3 grasses for 73 sites. Use a ln(X+1) transformation of the relative abundance class to remove problems of extrapolating to negative relative abundance scores.
+
+a) Conduct a multiple linear regression
+
+b) Centre the explanatory variables to improve the efficiency of the MCMC sampling
+
+c) Include an interaction term. What does this mean biologically?
+
+```{r packages}
+library(jagsUI)
+```
+
+```{r model}
+modfile <- tempfile()
+writeLines("
+model
+{
+
+}
+           ", con = modfile)
+```
+
+```{r data}
+data <- list(
+  LONG = c(119.55, 114.27, 110.78, 101.87, 102.82, 99.38, 106.75, 96.55, 
+           101.53, 104.6, 102.5, 105.55, 99.23, 99.1, 96.6, 101.8, 112.67, 
+           112.15, 102.92, 103.45, 110.5, 107.72, 101.18, 97.23, 113.08, 
+           109.12, 102.33, 113.25, 111.87, 104.47, 116.75, 107.17, 111.3, 
+           111.95, 114.9, 104.5, 112.35, 105.08, 110.38, 109.65, 109.75, 
+           111.87, 111.75, 106.48, 106.48, 106.47, 106.37, 106, 97, 96.83, 
+           97, 96, 97.17, 109.83, 110.25, 110.83, 110.75, 110, 113.25, 113.25, 
+           98.33, 115.75, 105.28, 104.82, 105.12, 97.5, 96.62, 116.08, 117.83, 
+           116.25, 97.62, 93.2, 106.63),
+  LAT = c(46.4, 47.32, 45.78, 43.95, 46.9, 38.87, 32.62, 36.95, 35.3, 
+          40.82, 47.75, 33.48, 33.33, 45.33, 39.1, 41.55, 43.73, 44.25, 
+          29.58, 43.53, 31.6, 50.7, 32.97, 36.05, 41.87, 32, 43.75, 38.17, 
+          37.1, 45.03, 39.82, 41.42, 38.52, 40.17, 39.16, 38.55, 35.27, 
+          34.28, 40.47, 40.45, 39.88, 39.92, 40.12, 45.82, 45.87, 45.88, 
+          45.85, 45.48, 43.5, 30.58, 29, 33.75, 31.33, 39.66, 40.08, 40.5, 
+          40.58, 40.5, 38.5, 38.5, 30.25, 40.33, 41.12, 41.25, 42.07, 49.87, 
+          47.75, 36.83, 36, 36.67, 38.75, 45.4, 52.13),
+  C3 = c(0.65, 0.65, 0.76, 0.75, 0.33, 0.03, 0, 0.02, 0.05, 0.05, 0.36, 
+         0, 0.21, 0.51, 0.07, 0.29, 0.05, 0.13, 0, 0.65, 0, 0.89, 0.08, 
+         0.47, 0, 0, 0.21, 0.29, 0.35, 0.28, 0.45, 0.31, 0.02, 0.49, 0.36, 
+         0.01, 0, 0, 0.63, 0.03, 0.07, 0.12, 0.36, 0.63, 0.86, 0.47, 0.58, 
+         0.68, 0.71, 0.06, 0.04, 0.14, 0.06, 0.34, 0.31, 0.21, 0.69, 0.48, 
+         0.02, 0.08, 0.11, 0.11, 0.23, 0.18, 0.05, 0.19, 0.48, 0.02, 0, 
+         0, 0.07, 0.31, 0.72)
+)
+```
+
+```{r inits}
+inits <- function () {
+
+}
+```
+
+```{r params}
+params <- c("")
+```
+
+```{r fit}
+fit <- autojags(data, inits, params, modfile, n.chains = 4)
+```
+
+```{r plot}
+plot(fit)
+summary(fit$samples)
+```
+

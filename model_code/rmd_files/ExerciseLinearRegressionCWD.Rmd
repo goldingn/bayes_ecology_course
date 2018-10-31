@@ -1,0 +1,45 @@
+Christensen (1996) examined the relationship between the abundance of coarse woody debris (CWD) and tree density along the shoreline of 16 North American lakes. 
+
+a) Analyse the data using linear regression, predicting the abundance of CWD as a function of tree density.
+
+```{r packages}
+library(jagsUI)
+```
+
+```{r model}
+modfile <- tempfile()
+writeLines("
+model
+{
+
+}
+           ", con = modfile)
+```
+
+```{r data}
+data <- list(
+  TreeDens = c(1270, 1210, 1800, 1875, 1300, 2150, 1330, 964, 961, 1400, 1280,
+               976, 771, 833, 883, 956),
+  CWD = c(121, 41, 183, 130, 127, 134, 65, 52, 12, 46, 54, 97, 1, 4, 1, 4)
+)
+
+```
+
+```{r inits}
+inits <- function () {
+
+}
+```
+
+```{r params}
+params <- c("")
+```
+
+```{r fit}
+fit <- autojags(data, inits, params, modfile, n.chains = 4)
+```
+
+```{r plot}
+plot(fit)
+summary(fit$samples)
+```
