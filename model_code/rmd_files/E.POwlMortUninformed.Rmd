@@ -1,0 +1,40 @@
+```{r packages}
+library(jagsUI)
+```
+
+```{r model}
+modfile <- tempfile()
+writeLines("
+model
+{
+  mortPOwl ~dunif(0.0, 1.0)   # prior for mortality
+
+  x ~ dbin(mortPOwl, n)   # number of deaths drawn from binomial
+}
+           ", con = modfile)
+```
+
+```{r data}
+data <- list(x = 1, n = 35)
+```
+
+```{r inits}
+inits <- function () {
+  list(mortPOwl = runif(1))
+}
+```
+
+```{r params}
+params <- c("mortPOwl")
+```
+
+```{r fit}
+fit <- autojags(data, inits, params, modfile, n.chains = 4)
+```
+
+```{r plot}
+plot(fit)
+summary(fit$samples)
+```
+
+
