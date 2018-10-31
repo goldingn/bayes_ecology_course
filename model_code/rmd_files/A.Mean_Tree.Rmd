@@ -1,0 +1,39 @@
+```{r packages}
+library(jagsUI)
+```
+
+```{r model}
+modfile <- tempfile()
+writeLines("
+model
+{
+
+}
+", con = modfile)
+```
+
+```{r data}
+# site 2 sample
+data <- list(Y = c(42, 43, 58, 70, 47, 51, 85, 63, 58, 46),
+             N = 10)
+```
+
+```{r inits}
+inits <- function () {
+  list(prec = 25, mean = 100)
+}
+```
+
+```{r params}
+params <- c("mean")
+```
+
+```{r fit}
+fit <- autojags(data, inits, params, modfile, n.chains = 4)
+```
+
+```{r plot}
+plot(fit)
+summary(fit$samples)
+mean(data$Y)
+```
