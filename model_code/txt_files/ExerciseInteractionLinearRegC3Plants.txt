@@ -1,0 +1,88 @@
+Paruelo and Laueroth (1996) examined the relationship between the distribution of C3 grasses in the western portion of North America and several geographic variables. 
+
+The variables below are longitude, latitude and relative abundance of C3 grasses for 73 sites. Use a ln(X+1) transformation of the relative abundance class to remove problems of extrapolating to negative relative abundance scores.
+
+a) Conduct a multiple linear regression
+
+b) Centre the explanatory variables to improve the efficiency of the MCMC sampling
+
+c) Include an interaction term. What does this mean biologically?
+
+
+LONG[]	LAT[]	C3[]
+119.55	46.4	0.65
+114.27	47.32	0.65
+110.78	45.78	0.76
+101.87	43.95	0.75
+102.82	46.9	0.33
+99.38	38.87	0.03
+106.75	32.62	0
+96.55	36.95	0.02
+101.53	35.3	0.05
+104.6	40.82	0.05
+102.5	47.75	0.36
+105.55	33.48	0
+99.23	33.33	0.21
+99.1	45.33	0.51
+96.6	39.1	0.07
+101.8	41.55	0.29
+112.67	43.73	0.05
+112.15	44.25	0.13
+102.92	29.58	0
+103.45	43.53	0.65
+110.5	31.6	0
+107.72	50.7	0.89
+101.18	32.97	0.08
+97.23	36.05	0.47
+113.08	41.87	0
+109.12	32	0
+102.33	43.75	0.21
+113.25	38.17	0.29
+111.87	37.1	0.35
+104.47	45.03	0.28
+116.75	39.82	0.45
+107.17	41.42	0.31
+111.3	38.52	0.02
+111.95	40.17	0.49
+114.9	39.16	0.36
+104.5	38.55	0.01
+112.35	35.27	0
+105.08	34.28	0
+110.38	40.47	0.63
+109.65	40.45	0.03
+109.75	39.88	0.07
+111.87	39.92	0.12
+111.75	40.12	0.36
+106.48	45.82	0.63
+106.48	45.87	0.86
+106.47	45.88	0.47
+106.37	45.85	0.58
+106	45.48	0.68
+97	43.5	0.71
+96.83	30.58	0.06
+97	29	0.04
+96	33.75	0.14
+97.17	31.33	0.06
+109.83	39.66	0.34
+110.25	40.08	0.31
+110.83	40.5	0.21
+110.75	40.58	0.69
+110	40.5	0.48
+113.25	38.5	0.02
+113.25	38.5	0.08
+98.33	30.25	0.11
+115.75	40.33	0.11
+105.28	41.12	0.23
+104.82	41.25	0.18
+105.12	42.07	0.05
+97.5	49.87	0.19
+96.62	47.75	0.48
+116.08	36.83	0.02
+117.83	36	0
+116.25	36.67	0
+97.62	38.75	0.07
+93.2	45.4	0.31
+106.63	52.13	0.72
+END		
+
+

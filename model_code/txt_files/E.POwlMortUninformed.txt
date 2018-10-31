@@ -1,0 +1,10 @@
+model
+{
+  mortPOwl ~dunif(0.0, 1.0)   # prior for mortality
+
+  x ~ dbin(mortPOwl, n)   # number of deaths drawn from binomial
+}
+
+Data
+list(x=1, n=35)
+
