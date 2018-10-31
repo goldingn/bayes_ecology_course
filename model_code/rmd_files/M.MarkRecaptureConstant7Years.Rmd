@@ -1,0 +1,179 @@
+Erroring
+
+
+Mark-recapture analysis for female European Dippers
+
+```{r packages}
+library(jagsUI)
+```
+
+```{r model}
+modfile <- tempfile()
+writeLines("
+model
+{
+  # for each bird
+  for(i in 1:N) {
+    alive[i, First[i]] <- 1  # 1 means it is alive the first time it was seen
+
+    # for each year after the first
+    for (j in (First[i] + 1):Years) {
+      # alivep = prob of being alive (=0 if dead in previous year, = surv if alive)
+      alivep[i,j] <- surv * alive[i, j-1] 
+      # determine whether it is alive
+      alive[i,j] ~ dbern(alivep[i,j])
+      # probability of resighting depends whether it is alive
+      sightp[i,j] <- resight * alive[i, j]        
+      # actual resighting determined randomly
+      Y[i, j] ~ dbern(sightp[i,j])
+    }
+  }
+
+  # Priors - choose informative or uninformative for survival
+  #  surv ~ dnorm (0.57, 178)  # informative
+  surv ~ dunif(0, 1)  # uninformative
+
+  resight ~ dunif(0,1)  # resighting rate - uninformative
+}
+           ", con = modfile)
+```
+
+Data follow - 1 means observed, 0 means not observed, each row is an individual
+ - First is the time period when first captured.
+ 
+```{r data}
+data <- list(
+  Years = 7,
+  N = 130,
+  Y = structure(c(1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 
+                  0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 
+                  0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 
+                  0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 
+                  1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 
+                  1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 
+                  0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 
+                  0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 
+                  0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 
+                  0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 
+                  0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 
+                  0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 
+                  0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 
+                  1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 
+                  1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 
+                  1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 
+                  0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 
+                  0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 
+                  0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 
+                  0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 
+                  0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 
+                  0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 
+                  1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 
+                  1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 
+                  1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 
+                  1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 
+                  1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 
+                  1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 
+                  1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 
+                  1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 
+                  0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 
+                  0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 
+                  0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 
+                  0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 
+                  0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 
+                  0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 
+                  0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 
+                  0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 
+                  0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 
+                  0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 
+                  0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 
+                  0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 
+                  0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 
+                  0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0), .Dim = c(130L, 7L)),
+  First = c(1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 
+            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 
+            3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 
+            4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 
+            5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 
+            6, 6, 6, 6, 6)
+)
+```
+
+Initial values follow - alive is NA up to and including the first observation, then 1 for known periods when alive, then 0 after - initial values are required to start the Markov Chain
+
+```{r inits}
+inits <- function () {
+  list(
+    surv = 0.55,
+    resight = 0.75,
+    alive = structure(
+      c(NA, 1, 1, 1, 0, 0, 0, NA, 1, 1, 1, 1, 1, 0, NA, 1, 
+        0, 0, 0, 0, 0, NA, 1, 0, 0, 0, 0, 0, NA, 1, 1, 0, 0, 0, 0, NA, 
+        0, 0, 0, 0, 0, 0, NA, 0, 0, 0, 0, 0, 0, NA, 0, 0, 0, 0, 0, 0, 
+        NA, 0, 0, 0, 0, 0, 0, NA, NA, 1, 1, 1, 1, 1, NA, NA, 1, 1, 1, 
+        1, 1, NA, NA, 1, 1, 1, 1, 0, NA, NA, 1, 1, 1, 0, 0, NA, NA, 1, 
+        1, 1, 0, 0, NA, NA, 1, 1, 0, 0, 0, NA, NA, 1, 1, 1, 1, 0, NA, 
+        NA, 1, 0, 0, 0, 0, NA, NA, 1, 0, 0, 0, 0, NA, NA, 1, 0, 0, 0, 
+        0, NA, NA, 1, 0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 
+        0, 0, 0, NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 0, NA, NA, 
+        0, 0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 0, 
+        NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 0, 
+        0, 0, NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 
+        0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 0, NA, 
+        NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 
+        0, NA, NA, NA, 1, 1, 1, 1, NA, NA, NA, 1, 1, 1, 1, NA, NA, NA, 
+        1, 1, 1, 0, NA, NA, NA, 1, 1, 0, 0, NA, NA, NA, 1, 1, 0, 0, NA, 
+        NA, NA, 1, 0, 0, 0, NA, NA, NA, 1, 0, 0, 0, NA, NA, NA, 1, 0, 
+        0, 0, NA, NA, NA, 1, 0, 0, 0, NA, NA, NA, 0, 0, 0, 0, NA, NA, 
+        NA, 0, 0, 0, 0, NA, NA, NA, 0, 0, 0, 0, NA, NA, NA, 0, 0, 0, 
+        0, NA, NA, NA, 0, 0, 0, 0, NA, NA, NA, 0, 0, 0, 0, NA, NA, NA, 
+        0, 0, 0, 0, NA, NA, NA, 0, 0, 0, 0, NA, NA, NA, 0, 0, 0, 0, NA, 
+        NA, NA, 0, 0, 0, 0, NA, NA, NA, 0, 0, 0, 0, NA, NA, NA, 0, 0, 
+        0, 0, NA, NA, NA, 0, 0, 0, 0, NA, NA, NA, 0, 0, 0, 0, NA, NA, 
+        NA, 0, 0, 0, 0, NA, NA, NA, 0, 0, 0, 0, NA, NA, NA, 0, 0, 0, 
+        0, NA, NA, NA, 0, 0, 0, 0, NA, NA, NA, NA, 1, 1, 1, NA, NA, NA, 
+        NA, 1, 1, 1, NA, NA, NA, NA, 1, 1, 0, NA, NA, NA, NA, 1, 1, 0, 
+        NA, NA, NA, NA, 1, 1, 0, NA, NA, NA, NA, 1, 1, 0, NA, NA, NA, 
+        NA, 1, 0, 0, NA, NA, NA, NA, 1, 0, 0, NA, NA, NA, NA, 1, 0, 0, 
+        NA, NA, NA, NA, 1, 0, 0, NA, NA, NA, NA, 1, 0, 0, NA, NA, NA, 
+        NA, 1, 1, 1, NA, NA, NA, NA, 1, 1, 1, NA, NA, NA, NA, 0, 0, 0, 
+        NA, NA, NA, NA, 0, 0, 0, NA, NA, NA, NA, 0, 0, 0, NA, NA, NA, 
+        NA, 0, 0, 0, NA, NA, NA, NA, 0, 0, 0, NA, NA, NA, NA, 0, 0, 0, 
+        NA, NA, NA, NA, 0, 0, 0, NA, NA, NA, NA, 0, 0, 0, NA, NA, NA, 
+        NA, 0, 0, 0, NA, NA, NA, NA, 0, 0, 0, NA, NA, NA, NA, NA, 1, 
+        1, NA, NA, NA, NA, NA, 1, 1, NA, NA, NA, NA, NA, 1, 1, NA, NA, 
+        NA, NA, NA, 1, 1, NA, NA, NA, NA, NA, 1, 1, NA, NA, NA, NA, NA, 
+        1, 1, NA, NA, NA, NA, NA, 1, 0, NA, NA, NA, NA, NA, 1, 0, NA, 
+        NA, NA, NA, NA, 1, 0, NA, NA, NA, NA, NA, 1, 0, NA, NA, NA, NA, 
+        NA, 1, 0, NA, NA, NA, NA, NA, 1, 0, NA, NA, NA, NA, NA, 0, 0, 
+        NA, NA, NA, NA, NA, 0, 0, NA, NA, NA, NA, NA, 0, 0, NA, NA, NA, 
+        NA, NA, 0, 0, NA, NA, NA, NA, NA, 0, 0, NA, NA, NA, NA, NA, 0, 
+        0, NA, NA, NA, NA, NA, 0, 0, NA, NA, NA, NA, NA, NA, 1, NA, NA, 
+        NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, 
+        NA, NA, 1, NA, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, NA, 
+        1, NA, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, NA, 1, NA, 
+        NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, NA, 1, NA, NA, NA, 
+        NA, NA, NA, 1, NA, NA, NA, NA, NA, NA, 0, NA, NA, NA, NA, NA, 
+        NA, 0, NA, NA, NA, NA, NA, NA, 0, NA, NA, NA, NA, NA, NA, 0, 
+        NA, NA, NA, NA, NA, NA, 0, NA, NA, NA, NA, NA, NA, 0, NA, NA, 
+        NA, NA, NA, NA, 0, NA, NA, NA, NA, NA, NA, 0, NA, NA, NA, NA, 
+        NA, NA, 0, NA, NA, NA, NA, NA, NA, 0, NA, NA, NA, NA, NA, NA, 
+        0, NA, NA, NA, NA, NA, NA, 0),
+      .Dim = c(130L, 7L)
+    )
+  )
+}
+```
+
+```{r params}
+params <- c("surv", "resight", "alive")
+```
+
+```{r fit}
+fit <- autojags(data, inits, params, modfile, n.chains = 4)
+```
+
+```{r plot}
+plot(fit)
+summary(fit$samples)
+```

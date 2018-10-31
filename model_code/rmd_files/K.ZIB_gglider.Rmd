@@ -1,0 +1,60 @@
+```{r packages}
+library(jagsUI)
+```
+
+```{r model}
+modfile <- tempfile()
+writeLines("
+model
+{
+  # for each of the 50 sites
+  for(i in 1:50) {
+    logit(p[i]) <- a + b * folnutcont[i]   # calculate probability of occupancy by greater gliders
+
+    pres[i] ~ dbern(p[i])    # determine whether the gg is there
+
+    pr_sight[i] <- d * pres[i]   # prob of seeing it depends on whether it is there
+
+    Z[i] ~ dbin(pr_sight[i], V[i])   # number of observations drawn from a binomial distribution
+  }
+
+  d ~ dunif(0, 1)   # prior for detectability
+
+  a ~ dnorm(0.0, 0.001)  # priors for regression parameters for occupancy
+  b ~ dnorm(0.0, 0.001)
+}
+           ", con = modfile)
+```
+
+```{r data}
+data <- list(
+  V = c(8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+        8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+        8, 8), 
+  Z = c(5, 0, 0, 0, 4, 0, 0, 1, 0, 0, 0, 6, 2, 5, 4, 2, 4, 0, 2, 5, 4, 0, 0, 1,
+        5, 1, 1, 3, 0, 0, 5, 5, 6, 0, 0, 0, 0, 2, 0, 0, 4, 0, 3, 0, 0, 0, 1, 0,
+        0, 3),  
+  folnutcont = c(2, 4, 5, 2, 4, 2, 2, 5, 2, 4, 3, 3, 8, 4, 5, 7, 5, 5, 5, 3, 5,
+                 4, 7, 2, 2, 4, 4, 5, 3, 3, 5, 3, 0, 5, 4, 3, 5, 5, 3, 2, 0, 2,
+                 6, 2, 3, 2, 2, 2, 3, 4)
+)
+```
+
+```{r inits}
+inits <- function () {
+  list(a = 0, b = 0, d = 0.5, pres = rep(1, length(data$Z)))
+}
+```
+
+```{r params}
+params <- c("a", "b", "d")
+```
+
+```{r fit}
+fit <- autojags(data, inits, params, modfile, n.chains = 4)
+```
+
+```{r plot}
+plot(fit)
+summary(fit$samples)
+```

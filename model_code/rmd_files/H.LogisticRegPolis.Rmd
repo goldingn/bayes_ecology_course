@@ -1,0 +1,77 @@
+```{r packages}
+library(jagsUI)
+```
+
+```{r model}
+modfile <- tempfile()
+writeLines("
+model
+{
+  a ~ dnorm(0, 1.0E-6)  # priors for regression coefficients
+  b ~ dnorm(0, 1.0E-6)
+
+  # for each of the 19 islands
+  for (i in 1:19)
+  {
+    logit(p[i]) <- a + b*PA[i]   # calculate the probability of occupancy
+    Y[i] ~ dbern(p[i])          # randomly draw the actual occupancy from a Bernoulli distribution
+    # PA2[i] <- PA[i] - mean(PA[1:19])
+  }
+}
+           ", con = modfile)
+```
+
+```{r data}
+data <- list(
+  PA = c(15.41, 5.63, 25.92, 15.17, 13.04, 18.85, 30.95, 22.87, 12.01, 
+         11.6, 6.09, 2.28, 4.05, 59.94, 63.16, 22.76, 23.54, 0.21, 2.55),
+  Y = c(1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1)
+)
+```
+
+```{r inits}
+inits <- function () {
+  list(a = 0, b = 0)
+}
+```
+
+```{r params}
+params <- c("a", "b")
+```
+
+```{r fit}
+fit <- autojags(data, inits, params, modfile, n.chains = 4)
+```
+
+```{r plot}
+plot(fit)
+summary(fit$samples)
+```
+
+
+
+
+Data
+PA[]	Y[]
+15.41	1
+5.63	1
+25.92	1
+15.17	0
+13.04	1
+18.85	0
+30.95	0
+22.87	0
+12.01	0
+11.6	1
+6.09	1
+2.28	1
+4.05	1
+59.94	0
+63.16	0
+22.76	0
+23.54	0
+0.21	1
+2.55	1
+END
+
+
