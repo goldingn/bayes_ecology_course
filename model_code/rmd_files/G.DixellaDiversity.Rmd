@@ -1,5 +1,3 @@
-Erroring, because of cyclical madness!
-
 ```{r packages}
 library(jagsUI)
 ```
@@ -9,7 +7,6 @@ modfile <- tempfile()
 writeLines("
 model
 {
-  N <- sum(f[1:4])  # N = 75 in this example
 
   p[1:4] ~ ddirch(alpha[])  # prior for proportion - Dirichlet is the multinomial equivalent of beta
 
@@ -23,10 +20,11 @@ data <- list(
   alpha = c(1, 1, 1, 1),
   f = c(24, 32, 10, 9)
 )
+data$N <- sum(data$f)
 ```
 
 ```{r params}
-params <- c("")
+params <- c("p")
 ```
 
 ```{r fit}

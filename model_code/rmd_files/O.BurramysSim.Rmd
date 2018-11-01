@@ -1,5 +1,3 @@
-Erroring - no ranked()
-
 ```{r packages}
 library(jagsUI)
 ```
@@ -29,7 +27,7 @@ model
     # and the current population size
   }
 
-  mini <- ranked(fem[1:21], 1)
+  mini <- min(fem)
 
   # determine if the mini population is 40 or smaller
   q40 <- step(40 - mini)  # step function equals 1 if min<=40
@@ -51,7 +49,7 @@ inits <- NULL
 ```
 
 ```{r params}
-params <- c("fem", "q")
+params <- c("mini", "q40")
 ```
 
 ```{r fit}
@@ -59,7 +57,7 @@ fit <- autojags(data, inits, params, modfile, n.chains = 4)
 ```
 
 ```{r plot}
-plot(fit)
+plot(fit$samples)
 summary(fit$samples)
 ```
 
