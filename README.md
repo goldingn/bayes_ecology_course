@@ -4,7 +4,7 @@
 
 This GitHub site contains materials for a workshop on Bayesian Ecological Modelling, taught by [Mick McCarthy](https://qaeco.com/principal-researchers/#mick) and [Nick Golding](https://qaeco.com/researchfellows/#ngolding)
 
-Scroll down for the schedule and [software installation instructions]().
+Scroll down for the schedule and [software installation instructions](#software-to-install).
 
 ## Schedule
 
