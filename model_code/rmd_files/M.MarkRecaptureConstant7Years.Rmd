@@ -1,6 +1,3 @@
-Erroring
-
-
 Mark-recapture analysis for female European Dippers
 
 ```{r packages}
@@ -13,19 +10,27 @@ writeLines("
 model
 {
   # for each bird
-  for(i in 1:N) {
-    alive[i, First[i]] <- 1  # 1 means it is alive the first time it was seen
+  for (i in 1:N) {
+
+    for (j in 1:First[i]) {
+      alive[i, j] ~ dbern(1)  # 1 means it is alive the first time it was seen
+    }
 
     # for each year after the first
     for (j in (First[i] + 1):Years) {
+
       # alivep = prob of being alive (=0 if dead in previous year, = surv if alive)
       alivep[i,j] <- surv * alive[i, j-1] 
+
       # determine whether it is alive
       alive[i,j] ~ dbern(alivep[i,j])
+
       # probability of resighting depends whether it is alive
       sightp[i,j] <- resight * alive[i, j]        
+
       # actual resighting determined randomly
       Y[i, j] ~ dbern(sightp[i,j])
+
     }
   }
 
@@ -106,67 +111,13 @@ inits <- function () {
   list(
     surv = 0.55,
     resight = 0.75,
-    alive = structure(
-      c(NA, 1, 1, 1, 0, 0, 0, NA, 1, 1, 1, 1, 1, 0, NA, 1, 
-        0, 0, 0, 0, 0, NA, 1, 0, 0, 0, 0, 0, NA, 1, 1, 0, 0, 0, 0, NA, 
-        0, 0, 0, 0, 0, 0, NA, 0, 0, 0, 0, 0, 0, NA, 0, 0, 0, 0, 0, 0, 
-        NA, 0, 0, 0, 0, 0, 0, NA, NA, 1, 1, 1, 1, 1, NA, NA, 1, 1, 1, 
-        1, 1, NA, NA, 1, 1, 1, 1, 0, NA, NA, 1, 1, 1, 0, 0, NA, NA, 1, 
-        1, 1, 0, 0, NA, NA, 1, 1, 0, 0, 0, NA, NA, 1, 1, 1, 1, 0, NA, 
-        NA, 1, 0, 0, 0, 0, NA, NA, 1, 0, 0, 0, 0, NA, NA, 1, 0, 0, 0, 
-        0, NA, NA, 1, 0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 
-        0, 0, 0, NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 0, NA, NA, 
-        0, 0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 0, 
-        NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 0, 
-        0, 0, NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 
-        0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 0, NA, 
-        NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 0, 0, 
-        0, NA, NA, NA, 1, 1, 1, 1, NA, NA, NA, 1, 1, 1, 1, NA, NA, NA, 
-        1, 1, 1, 0, NA, NA, NA, 1, 1, 0, 0, NA, NA, NA, 1, 1, 0, 0, NA, 
-        NA, NA, 1, 0, 0, 0, NA, NA, NA, 1, 0, 0, 0, NA, NA, NA, 1, 0, 
-        0, 0, NA, NA, NA, 1, 0, 0, 0, NA, NA, NA, 0, 0, 0, 0, NA, NA, 
-        NA, 0, 0, 0, 0, NA, NA, NA, 0, 0, 0, 0, NA, NA, NA, 0, 0, 0, 
-        0, NA, NA, NA, 0, 0, 0, 0, NA, NA, NA, 0, 0, 0, 0, NA, NA, NA, 
-        0, 0, 0, 0, NA, NA, NA, 0, 0, 0, 0, NA, NA, NA, 0, 0, 0, 0, NA, 
-        NA, NA, 0, 0, 0, 0, NA, NA, NA, 0, 0, 0, 0, NA, NA, NA, 0, 0, 
-        0, 0, NA, NA, NA, 0, 0, 0, 0, NA, NA, NA, 0, 0, 0, 0, NA, NA, 
-        NA, 0, 0, 0, 0, NA, NA, NA, 0, 0, 0, 0, NA, NA, NA, 0, 0, 0, 
-        0, NA, NA, NA, 0, 0, 0, 0, NA, NA, NA, NA, 1, 1, 1, NA, NA, NA, 
-        NA, 1, 1, 1, NA, NA, NA, NA, 1, 1, 0, NA, NA, NA, NA, 1, 1, 0, 
-        NA, NA, NA, NA, 1, 1, 0, NA, NA, NA, NA, 1, 1, 0, NA, NA, NA, 
-        NA, 1, 0, 0, NA, NA, NA, NA, 1, 0, 0, NA, NA, NA, NA, 1, 0, 0, 
-        NA, NA, NA, NA, 1, 0, 0, NA, NA, NA, NA, 1, 0, 0, NA, NA, NA, 
-        NA, 1, 1, 1, NA, NA, NA, NA, 1, 1, 1, NA, NA, NA, NA, 0, 0, 0, 
-        NA, NA, NA, NA, 0, 0, 0, NA, NA, NA, NA, 0, 0, 0, NA, NA, NA, 
-        NA, 0, 0, 0, NA, NA, NA, NA, 0, 0, 0, NA, NA, NA, NA, 0, 0, 0, 
-        NA, NA, NA, NA, 0, 0, 0, NA, NA, NA, NA, 0, 0, 0, NA, NA, NA, 
-        NA, 0, 0, 0, NA, NA, NA, NA, 0, 0, 0, NA, NA, NA, NA, NA, 1, 
-        1, NA, NA, NA, NA, NA, 1, 1, NA, NA, NA, NA, NA, 1, 1, NA, NA, 
-        NA, NA, NA, 1, 1, NA, NA, NA, NA, NA, 1, 1, NA, NA, NA, NA, NA, 
-        1, 1, NA, NA, NA, NA, NA, 1, 0, NA, NA, NA, NA, NA, 1, 0, NA, 
-        NA, NA, NA, NA, 1, 0, NA, NA, NA, NA, NA, 1, 0, NA, NA, NA, NA, 
-        NA, 1, 0, NA, NA, NA, NA, NA, 1, 0, NA, NA, NA, NA, NA, 0, 0, 
-        NA, NA, NA, NA, NA, 0, 0, NA, NA, NA, NA, NA, 0, 0, NA, NA, NA, 
-        NA, NA, 0, 0, NA, NA, NA, NA, NA, 0, 0, NA, NA, NA, NA, NA, 0, 
-        0, NA, NA, NA, NA, NA, 0, 0, NA, NA, NA, NA, NA, NA, 1, NA, NA, 
-        NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, 
-        NA, NA, 1, NA, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, NA, 
-        1, NA, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, NA, 1, NA, 
-        NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, NA, 1, NA, NA, NA, 
-        NA, NA, NA, 1, NA, NA, NA, NA, NA, NA, 0, NA, NA, NA, NA, NA, 
-        NA, 0, NA, NA, NA, NA, NA, NA, 0, NA, NA, NA, NA, NA, NA, 0, 
-        NA, NA, NA, NA, NA, NA, 0, NA, NA, NA, NA, NA, NA, 0, NA, NA, 
-        NA, NA, NA, NA, 0, NA, NA, NA, NA, NA, NA, 0, NA, NA, NA, NA, 
-        NA, NA, 0, NA, NA, NA, NA, NA, NA, 0, NA, NA, NA, NA, NA, NA, 
-        0, NA, NA, NA, NA, NA, NA, 0),
-      .Dim = c(130L, 7L)
-    )
+    alive = matrix(1, 130, 7)
   )
 }
 ```
 
 ```{r params}
-params <- c("surv", "resight", "alive")
+params <- c("surv", "resight")
 ```
 
 ```{r fit}
