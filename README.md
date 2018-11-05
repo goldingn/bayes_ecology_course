@@ -6,7 +6,7 @@ This GitHub site contains materials for a workshop on Bayesian Ecological Modell
 
 Scroll down for the schedule and [software installation instructions](#software-to-install).
 
-You can view all these files on GitHub, or to download them directly [ [click here](https://www.dropbox.com/sh/mn7thtbxvkwzppo/AABc1tiNrnObVQTv2d2ngpTfa?dl=0) ]
+You can view all these files on GitHub, or to [download them directly here](https://www.dropbox.com/sh/mn7thtbxvkwzppo/AABc1tiNrnObVQTv2d2ngpTfa?dl=0)
 
 
 ## Schedule
