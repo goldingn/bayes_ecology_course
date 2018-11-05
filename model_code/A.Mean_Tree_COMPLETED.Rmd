@@ -1,0 +1,68 @@
+
+
+Load the jagsUI R package - this should connect to JAGS automatically, and provides an interface for running models
+```{r packages}
+library(jagsUI)
+```
+
+
+This chunk of code is where we will write out our Bayesian model. JAGS has it's own programming language that is very similar to (but not the same as) R. We'll write JAGS code as a character string. JAGS requires this string to be written to a separate file, so the rest of the code here does that, and the path to the temporary file we create is stored in `modfile`.  
+```{r model}
+modfile <- tempfile()
+writeLines("
+model
+{
+
+  # priors
+  mean ~ dnorm(0, 0.000001)
+  sd ~ dunif(0, 10000)
+  prec <- 1 / (sd * sd)
+  
+  # likelihood
+  for (i in 1:N) {
+    Y[i] ~ dnorm(mean, prec)
+  }
+
+}
+", con = modfile)
+```
+
+JAGS takes data via a named list. this list contains the tree measurements, as well as the number of trees measured.
+```{r data}
+# site 2 sample
+data <- list(Y = c(42, 43, 58, 70, 47, 51, 85, 63, 58, 46),
+             N = 10)
+```
+
+When we run the MCMC algorithm in JAGS, we need to start the MCMC chains at some values for the parameters. JAGS will do this for us for most models, but it's good practice to think about what reasonable values will be. We pass this as a *function* that returns a list. This seems a bit fiddly, but the reason will become clear later.
+
+```{r inits}
+inits <- function () {
+  list(sd = runif(1, 0, 10000), mean = rnorm(1, 0, 1000))
+}
+```
+
+We also need to tell JAGS which variables in the model we are interested in. We'll create a variable named `mean`, so this tells JAGS to report the posterior samples for this variable.
+```{r params}
+params <- c("mean")
+```
+
+This is the bit where we run the model! We pass in the data, the initial values, the parameters we care about, and file with the model code, and finally the number of different chains we want to run.
+```{r fit}
+fit <- autojags(data, inits, params, modfile, n.chains = 4)
+```
+
+When it's done, we can plot the MCMC chains for the parameters of interest.
+```{r plot}
+plot(fit)
+```
+
+We can compute summary statistics of our model posteriors.
+```{r summarise}
+summary(fit$samples)
+```
+
+For comparison, this is the empirical, or maximum likelihood estimate.
+```{r mle}
+mean(data$Y)
+```
