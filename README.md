@@ -8,6 +8,7 @@ Scroll down for the schedule and [software installation instructions](#software-
 
 You can view all these files on GitHub, or to [download them directly here](https://www.dropbox.com/sh/mn7thtbxvkwzppo/AABc1tiNrnObVQTv2d2ngpTfa?dl=0)
 
+[Here's a link](https://chi-feng.github.io/mcmc-demo/app.html) to a cool interactive illustration of different MCMC algorithms fare on different types of posterior distribution.
 
 ## Schedule
 
