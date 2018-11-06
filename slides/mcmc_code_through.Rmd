@@ -7,7 +7,7 @@ This document will be filled out with code to run MCMC on a model, just using R 
 
 ## the problem
 
-We'll be writing a model for the Polis logistic regression model. The JAGS version is in `H.LogisticRegPolis.Rmd`. Here's the data again:
+We'll be writing a model for the Polis logistic regression model, which models (observed) occupancy of a species at islands, as a function of the perimeter/area ratio of the island. The JAGS version is in `H.LogisticRegPolis.Rmd`. Here's the data again:
 
 ```{r data}
 data <- list(
@@ -50,19 +50,36 @@ model
 ## the likelihood function
 
 ```{r likelihood}
+likelihood <- function (params, data) {
+  
+  a <- params[1]
+  b <- params[2]
 
+  logit_p <- a + b * data$PA
+  p <- plogis(logit_p)
+  lp <- dbinom(data$Y, 1, p, log = TRUE)
+  sum(lp)
+}
 ```
 
 ## the prior density function
 
 ```{r prior}
-
+prior <- function (params) {
+  a <- params[1]
+  b <- params[2]
+  lp_a <- dnorm(a, 0, 1000, log = TRUE)
+  lp_b <- dnorm(b, 0, 1000, log = TRUE)
+  lp_a + lp_b
+}
 ```
 
 ## the posterior density function
 
 ```{r posterior}
-
+posterior <- function(params, data) {
+  prior(params) + likelihood(params, data)
+}
 ```
 
 ## the MCMC algorithm
@@ -70,25 +87,66 @@ model
 Specifically, this is for the random walk Metropolis-Hastings sampler
 
 ```{r proposal}
+propose <- function (params, step_size = 10) {
+  a <- params[1]
+  b <- params[2]
 
+  step_a <- rnorm(1, 0, step_size)
+  step_b <- rnorm(1, 0, step_size)
+  new_location <- c(a + step_a,
+                    b + step_b)
+}
 ```
 
 
 ```{r acceptance}
-accept <- function (lp_new, lp_old) {
+accept <- function (params_new, params_old, data) {
+  
+  lp_old <- posterior(params_old, data)
+  lp_new <- posterior(params_new, data)
+  
   log_diff <- lp_new - lp_old
   log(runif(1)) < log_diff
 }
 ```
 
 ```{r sampler}
-
+rwmh <- function (inits, data, n_iter = 1000, step_size = 10) {
+  
+  trace <- matrix(NA, n_iter, 2)
+  params_old <- inits
+  
+  for (iter in 1:n_iter) {
+    
+    # print(paste("mcmc iteration", iter))
+    
+    params_new <- propose(params_old, step_size = step_size)
+    accepted <- accept(params_new, params_old, data)
+    
+    if (accepted) {
+      params_old <- params_new
+    }
+    
+    trace[iter, ] <- params_old
+    
+  }
+  
+  trace
+  
+}
 ```
 
 ## run the algorithm on the data
 
 ```{r get_samples}
 
-```
+draws <- rwmh(inits = c(-3, 1), data, n_iter = 100000, step_size = 0.7)
 
+```
+```{r plot}
+par(mfrow = c(2, 1))
+plot(draws[, 1], type = "l", ylab = "a")
+plot(draws[, 2], type = "l", ylab = "b")
+
+```
 
