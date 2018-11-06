@@ -1,0 +1,74 @@
+Elgar et al. (1996) studied the size of webs spun by 17 orb spiders. Each spider spun one web in high light conditions and one in low light conditions. The difference in the vertical and horizontal size of each pair of webs was determined with negative values indicating that the web in high light conditions was smaller than for low light conditions. The data for the difference in the vertical dimension of the webs for the 17 spiders is given below.
+
+a) Estimate the average change in the vertical dimension of the webs assuming there is no prior information.
+
+b) Repeat the analysis for the horizontal dimension.
+
+c) Would you use the results of (a) as a prior for the analysis in (b)? If so, how would that be achieved? What would be the result?
+
+```{r packages}
+library(jagsUI)
+```
+
+```{r model}
+modfile <- tempfile()
+writeLines("
+model
+{
+
+  means[1] ~ dnorm(0, 0.000001)
+  means[2] ~ dnorm(0, 0.000001)
+  Omega ~ dwish(eye, 3)
+  Sigma <- inverse(Omega)
+
+  for (i in 1:nobs) {
+    Diff[i, ] ~ dmnorm(means, Omega)
+  }
+
+  # compute marginal standard deviations and correlation
+  sds <- c(sqrt(Sigma[1, 1]), sqrt(Sigma[2, 2]))
+  rescaler[1, 1] <- 1 / sds[1]
+  rescaler[2, 2] <- 1 / sds[2]
+  rescaler[1, 2] <- 0
+  rescaler[2, 1] <- 0
+  R <- rescaler %*% Sigma %*% rescaler
+  correl <- R[1, 2]
+
+}
+           ", con = modfile)
+```
+
+```{r data}
+data_vert <- list(VertDiff = c(-220, -120, -80, -130, -10, -60, -40, 60, -10, 
+                               40, -30, 30, 30, 110, 90, 70, -80))
+
+data_horiz <- list(HorizDiff = c(-235, -120, -120, -130, 20, -60, -170, 100, 
+                                 0, 30, -80, 60, -50, 30, -10, 10, -60))
+
+data_both <- list(Diff = cbind(data_vert$VertDiff, data_horiz$HorizDiff),
+                  eye = diag(2),
+                  nobs = length(data_vert$VertDiff))
+```
+
+```{r inits}
+inits <- function () {
+  list(Omega = diag(2),
+       means = rnorm(2))
+}
+```
+
+```{r params}
+params <- c("means", "sds", "correl")
+```
+
+```{r fit}
+fit <- autojags(data_both, inits, params, modfile, n.chains = 4)
+```
+
+```{r plot}
+plot(fit)
+summary(fit$samples)
+```
+
+Compute correlations
+
