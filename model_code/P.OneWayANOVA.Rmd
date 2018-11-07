@@ -22,7 +22,7 @@ model
     Y[i] ~ dnorm(mean[i], tau)
   }
 }
-           ", con = modfile)
+", con = modfile)
 ```
 
 ```{r data}

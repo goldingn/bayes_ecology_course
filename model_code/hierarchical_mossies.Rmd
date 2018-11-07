@@ -14,7 +14,7 @@ Your task: play around with this model and do a vaguely sensible analysis, using
 You might want to do some of the following:
  - see which covariates are important
  - see whether any model assumptions are violated
- - relax some assumptions fo this model
+ - relax some assumptions of this model
 
 ```{r data prep}
 # Download the data from Figshare
