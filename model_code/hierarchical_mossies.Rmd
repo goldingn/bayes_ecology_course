@@ -1,0 +1,105 @@
+Once upon a time, Nick actually went into the field. He collected data on the abundance of mosquito larvae in marshland in South-East England. In doing so, he found a particularly nasty mosquito species that wasn't though to be present in the UK, *Culex modestus*, and observed it at a number of sites.
+
+The full dataset is available online here: http://dx.doi.org/10.6084/m9.figshare.1420528.v1
+and a paper analysing these data (the presence-absence version) is online here: https://doi.org/10.1186/s13071-015-0915-1
+
+We're interested in modelling how the distribution (presence/absence) and/or abundance of *Cx. modestus* varies with environmental correlates.
+
+However there is a nested structure to the data: fieldwork took place at three different field sites (though two of them were very close together), and within each field site are a number of different dip sites. Each of these plots was visited four times; in July and August in each of 2010 and 2011. Some of the dip sites are also quite close to one another.
+
+The model below assumes that the abundance data follow a Poisson distribution, with log-abindance affected by two covariates and a hierarchical structure on the field sites and dip sites.
+
+Your task: play around with this model and do a vaguely sensible analysis, using some of the methods you've learned.
+
+You might want to do some of the following:
+ - see which covariates are important
+ - see whether any model assumptions are violated
+ - relax some assumptions fo this model
+
+```{r data prep}
+# Download the data from Figshare
+f <- tempfile()
+download.file("https://ndownloader.figshare.com/files/2075362", f)
+data <- read.csv(f, stringsAsFactors = FALSE)
+
+# Subset the data to only one species, the hierarchical structure, and some
+# covariates
+keep_columns <- c(
+  # response variable
+  "Culex_modestus",
+  # covariates
+  "depth__cm", "salinity__ppt", "temperature__C", "bulrushes__Typha", "ivy_leafed_duckweed__Lemna_trisulca",
+  # spatio-temporal structure
+  "dipping_round", "field_site", "dip_site", "longitude", "latitude")
+data <- data[, keep_columns]
+
+# convert the dipping round, field and dip site IDs to integers & split one of
+# the field sites in two
+data$dipping_round <- match(data$dipping_round, unique(data$dipping_round))
+data$field_site <- match(data$field_site, unique(data$field_site))
+data$field_site <- data$field_site + as.numeric(data$longitude > 0.78)
+data$dip_site <- match(data$dip_site, unique(data$dip_site))
+
+# centre and scale the continuous environmental covariates
+data$depth__cm <- as.numeric(scale(data$depth__cm))
+data$salinity__ppt <- as.numeric(scale(data$salinity__ppt))
+data$temperature__C <- as.numeric(scale(data$temperature__C))
+```
+
+```{r packages}
+library(jagsUI)
+```
+
+```{r model}
+modfile <- tempfile()
+writeLines("
+model
+{
+
+  # priors for regression parameters
+  int ~ dnorm(0.0, 0.001)
+  beta_sal ~ dnorm(0.0, 0.001)
+  beta_dep ~ dnorm(0.0, 0.001)
+
+  # priors for random effects
+  sd_dip_site ~ dunif(0, 1000)
+  prec_dip_site <- pow(sd_dip_site, -2)
+
+  sd_field_site ~ dunif(0, 1000)
+  prec_field_site <- pow(sd_field_site, -2)
+  
+  for (j in 1:max(dip_site)) {
+    dip_site_effect[j] ~ dnorm(0, prec_dip_site)
+  }
+
+  for (k in 1:max(field_site)) {
+    field_site_effect[k] ~ dnorm(0, prec_field_site)
+  }
+
+  for (i in 1:length(Culex_modestus)) {
+
+    random_effects[i] <- dip_site_effect[dip_site[i]] + field_site_effect[field_site[i]]
+
+    log(lambda[i]) <- int + beta_sal * salinity__ppt[i] + beta_dep * depth__cm[i] + random_effects[i]
+
+    # abundance
+    Culex_modestus[i] ~ dpois(lambda[i])
+  }
+
+}
+", con = modfile)
+```
+
+```{r params}
+params <- c("beta_sal", "beta_dep", "sd_dip_site", "sd_field_site")
+```
+
+```{r fit}
+fit <- jags(data, inits = NULL, params, modfile, n.chains = 4, n.iter = 22000, n.burnin = 2000)
+```
+
+```{r plot}
+plot(fit)
+summary(fit$samples)
+```
+
